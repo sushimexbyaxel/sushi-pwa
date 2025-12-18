@@ -7,32 +7,121 @@
 </head>
 <body>
 
-<h1>🍣 Menú Sushi</h1>
-<div id="menu">Cargando menú...</div>
+<h1>🍣 Sushi</h1>
+
+<h2>Menú</h2>
+<div id="menu"></div>
+
+<h2>Carrito</h2>
+<div id="carrito">Vacío</div>
+<b>Total: $<span id="total">0</span></b>
+
+<h2>Tipo de pedido</h2>
+<label>
+  <input type="radio" name="tipo" value="despacho" checked onchange="toggleDir()">
+  🚚 Despacho
+</label>
+<label>
+  <input type="radio" name="tipo" value="retiro" onchange="toggleDir()">
+  🏪 Retiro
+</label>
+
+<div id="dirBox">
+  <input id="direccion" placeholder="Dirección despacho">
+</div>
+
+<h2>Datos cliente</h2>
+<input id="cliente" placeholder="Nombre"><br>
+<input id="telefono" placeholder="Teléfono"><br><br>
+
+<button onclick="enviarPedido()">Enviar pedido</button>
 
 <script>
 const API = "https://script.google.com/macros/s/AKfycbxFTMvsq1mR55_9W--Tpck5hurue8SJSo1LNm4tIGbnTIwSgXUKVFKyVwxLEQBWEqDh/exec";
 const TOKEN = "SUSHI2025";
 
+let carrito = [];
+
 fetch(`${API}?action=menu&token=${TOKEN}`)
   .then(r => r.json())
-  .then(data => {
+  .then(menu => {
     const div = document.getElementById("menu");
-    div.innerHTML = "";
-    data.forEach(p => {
+    menu.forEach(p => {
       div.innerHTML += `
-        <div style="border:1px solid #ccc; padding:10px; margin:10px;">
-          <b>${p.nombre}</b><br>
-          ${p.descripcion}<br>
-          <b>$${p.precio}</b>
+        <div style="border:1px solid #ccc; margin:5px; padding:5px;">
+          <b>${p.nombre}</b> $${p.precio}<br>
+          <button onclick='add(${JSON.stringify(p)})'>Agregar</button>
         </div>
       `;
     });
-  })
-  .catch(err => {
-    document.getElementById("menu").innerText = "Error cargando menú";
-    console.error(err);
   });
+
+function add(p) {
+  carrito.push(p);
+  renderCarrito();
+}
+
+function renderCarrito() {
+  const div = document.getElementById("carrito");
+  if (carrito.length === 0) {
+    div.innerText = "Vacío";
+    document.getElementById("total").innerText = 0;
+    return;
+  }
+
+  div.innerHTML = "";
+  let total = 0;
+
+  carrito.forEach((p,i) => {
+    total += p.precio;
+    div.innerHTML += `
+      ${p.nombre} $${p.precio}
+      <button onclick="remove(${i})">x</button><br>
+    `;
+  });
+
+  document.getElementById("total").innerText = total;
+}
+
+function remove(i) {
+  carrito.splice(i,1);
+  renderCarrito();
+}
+
+function toggleDir() {
+  const tipo = document.querySelector('input[name="tipo"]:checked').value;
+  document.getElementById("dirBox").style.display =
+    tipo === "despacho" ? "block" : "none";
+}
+
+function enviarPedido() {
+  if (carrito.length === 0) {
+    alert("Carrito vacío");
+    return;
+  }
+
+  const tipo = document.querySelector('input[name="tipo"]:checked').value;
+
+  fetch(API, {
+    method: "POST",
+    body: JSON.stringify({
+      action: "nuevoPedido",
+      token: TOKEN,
+      tipo,
+      cliente: cliente.value,
+      telefono: telefono.value,
+      direccion: direccion.value,
+      items: carrito,
+      total: carrito.reduce((s,p)=>s+p.precio,0)
+    })
+  })
+  .then(r => r.json())
+  .then(r => {
+    alert("Pedido #" + r.pedido_id + " enviado");
+    carrito = [];
+    renderCarrito();
+  });
+}
 </script>
 
 </body>
