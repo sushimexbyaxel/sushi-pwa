@@ -1,56 +1,81 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Cocina</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8">
+<title>Cocina Sushi</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body { font-family: Arial; background:#111; color:#fff; padding:10px }
+.card {
+  background:#222; margin:10px 0; padding:10px;
+  border-radius:8px
+}
+button {
+  margin:5px; padding:6px 10px;
+  border:none; border-radius:5px;
+  cursor:pointer
+}
+.nuevo { background:#444 }
+.preparando { background:orange }
+.listo { background:limegreen }
+.entregado { background:#777 }
+</style>
 </head>
 <body>
 
-<h1>🍳 Cocina - Pedidos</h1>
-<div id="pedidos">Cargando...</div>
+<h2>🍣 Pedidos Cocina</h2>
+<div id="lista"></div>
 
 <script>
-const API = "https://script.google.com/macros/s/AKfycbxFTMvsq1mR55_9W--Tpck5hurue8SJSo1LNm4tIGbnTIwSgXUKVFKyVwxLEQBWEqDh/exec";
+const API   = "https://script.google.com/macros/s/AKfycbxFTMvsq1mR55_9W--Tpck5hurue8SJSo1LNm4tIGbnTIwSgXUKVFKyVwxLEQBWEqDh/exec";
 const TOKEN = "SUSHI2025";
 
 function cargarPedidos() {
   fetch(`${API}?action=pedidos&token=${TOKEN}`)
     .then(r => r.json())
     .then(data => {
-      const div = document.getElementById("pedidos");
-      div.innerHTML = "";
+      lista.innerHTML = "";
+      if (!data.length) {
+        lista.innerHTML = "<p>No hay pedidos</p>";
+        return;
+      }
 
       data.forEach(p => {
-        div.innerHTML += `
-          <div style="border:1px solid #000; margin:10px; padding:10px;">
-            <b>#${p.pedido_id}</b> - ${p.estado}<br>
-            ${p.cliente} (${p.tipo})<br>
-            Total: $${p.total}<br>
-            <button onclick="estado(${p.pedido_id},'preparando')">Preparando</button>
-            <button onclick="estado(${p.pedido_id},'listo')">Listo</button>
-            <button onclick="estado(${p.pedido_id},'entregado')">Entregado</button>
-          </div>
+        const div = document.createElement("div");
+        div.className = "card " + p.estado;
+
+        div.innerHTML = `
+          <b>#${p.pedido_id}</b><br>
+          ${p.cliente} (${p.tipo})<br>
+          $${p.total}<br>
+          Estado: <b>${p.estado}</b><br>
+          <button onclick="estado(${p.pedido_id},'preparando')">Preparando</button>
+          <button onclick="estado(${p.pedido_id},'listo')">Listo</button>
+          <button onclick="estado(${p.pedido_id},'entregado')">Entregado</button>
         `;
+
+        lista.appendChild(div);
       });
     });
 }
 
-function estado(id, nuevoEstado) {
+function estado(id, estado) {
   fetch(API, {
     method: "POST",
     body: JSON.stringify({
-      action: "estadoPedido",
+      action: "estadopedido",
       token: TOKEN,
       pedido_id: id,
-      estado: nuevoEstado
+      estado: estado
     })
-  }).then(() => cargarPedidos());
+  })
+  .then(() => cargarPedidos());
 }
 
-cargarPedidos();
 setInterval(cargarPedidos, 5000);
+cargarPedidos();
 </script>
 
 </body>
 </html>
+
