@@ -101,6 +101,7 @@ function enviarPedido() {
   }
 
   const tipo = document.querySelector('input[name="tipo"]:checked').value;
+  const total = carrito.reduce((s,p)=>s+p.precio,0);
 
   fetch(API, {
     method: "POST",
@@ -112,16 +113,32 @@ function enviarPedido() {
       telefono: telefono.value,
       direccion: direccion.value,
       items: carrito,
-      total: carrito.reduce((s,p)=>s+p.precio,0)
+      total
     })
   })
   .then(r => r.json())
   .then(r => {
-    alert("Pedido #" + r.pedido_id + " enviado");
+    const msg =
+`🍣 *Nuevo Pedido #${r.pedido_id}*
+Cliente: ${cliente.value}
+Teléfono: ${telefono.value}
+Tipo: ${tipo.toUpperCase()}
+${tipo === "despacho" ? "Dirección: " + direccion.value : ""}
+Total: $${total}
+
+¡Gracias por su compra!`;
+
+    window.open(
+      `https://wa.me/56957069347?text=${encodeURIComponent(msg)}`,
+      "_blank"
+    );
+
+    alert("Pedido enviado correctamente");
     carrito = [];
     renderCarrito();
   });
 }
+
 </script>
 
 </body>
