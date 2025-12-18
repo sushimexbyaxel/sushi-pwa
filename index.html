@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Sushi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+
+<h1>🍣 Menú Sushi</h1>
+<div id="menu">Cargando menú...</div>
+
+<script>
+const API = "https://script.google.com/macros/s/AKfycbxFTMvsq1mR55_9W--Tpck5hurue8SJSo1LNm4tIGbnTIwSgXUKVFKyVwxLEQBWEqDh/exec";
+const TOKEN = "SUSHI2025";
+
+fetch(`${API}?action=menu&token=${TOKEN}`)
+  .then(r => r.json())
+  .then(data => {
+    const div = document.getElementById("menu");
+    div.innerHTML = "";
+    data.forEach(p => {
+      div.innerHTML += `
+        <div style="border:1px solid #ccc; padding:10px; margin:10px;">
+          <b>${p.nombre}</b><br>
+          ${p.descripcion}<br>
+          <b>$${p.precio}</b>
+        </div>
+      `;
+    });
+  })
+  .catch(err => {
+    document.getElementById("menu").innerText = "Error cargando menú";
+    console.error(err);
+  });
+</script>
+
+</body>
+</html>
