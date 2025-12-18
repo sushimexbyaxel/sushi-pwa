@@ -69,7 +69,17 @@ function estado(id, estado) {
       estado: estado
     })
   })
-  .then(() => cargarPedidos());
+  .then(r => r.json())
+  .then(r => {
+    if (r.notify) {
+      const msg = `🍣 Hola ${r.cliente}, tu pedido #${r.pedido_id} está LISTO 🙌`;
+      window.open(
+        `https://wa.me/56${r.telefono}?text=${encodeURIComponent(msg)}`,
+        "_blank"
+      );
+    }
+    cargarPedidos();
+  });
 }
 
 setInterval(cargarPedidos, 5000);
