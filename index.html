@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Sushi Test Menú</title>
+<title>Sushi Online</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
@@ -11,19 +11,34 @@ body {
   background:#111;
   color:#fff;
   padding:10px;
+  max-width:480px;
+  margin:auto;
 }
+
 .card {
   background:#1f1f1f;
   padding:12px;
   margin:10px 0;
   border-radius:10px;
 }
+
 button {
   padding:6px 10px;
   border:none;
   border-radius:6px;
   background:#ff9800;
   font-weight:bold;
+  cursor:pointer;
+}
+
+button.small {
+  padding:3px 6px;
+  font-size:12px;
+}
+
+.total {
+  font-size:18px;
+  margin-top:10px;
 }
 </style>
 </head>
@@ -31,36 +46,75 @@ button {
 <body>
 
 <h2>🍣 Menú</h2>
-<div id="menu">Cargando...</div>
+<div id="menu">Cargando menú...</div>
+
+<h3>🛒 Carrito</h3>
+<div id="carrito" class="card">Vacío</div>
 
 <script>
-alert("JS OK");
-
 const API = "https://script.google.com/macros/s/AKfycbxFTMvsq1mR55_9W--Tpck5hurue8SJSo1LNm4tIGbnTIwSgXUKVFKyVwxLEQBWEqDh/exec";
+const TOKEN = "SUSHI2025";
 
-fetch(API + "?action=menu&token=SUSHI2025")
+const menuDiv = document.getElementById("menu");
+const carritoDiv = document.getElementById("carrito");
+
+let carrito = [];
+
+/* ===== MENÚ ===== */
+fetch(`${API}?action=menu&token=${TOKEN}`)
   .then(r => r.json())
   .then(data => {
 
-    console.log("DATA:", data);
-
-    const menu = document.getElementById("menu");
-    menu.innerHTML = "";
+    menuDiv.innerHTML = "";
 
     data.forEach(p => {
+      const nombre = p.nombre || "Producto";
+      const precio = Number(p.precio) || 0;
+      const nombreSeguro = JSON.stringify(nombre);
+
       const d = document.createElement("div");
       d.className = "card";
       d.innerHTML = `
-        <b>${p.nombre}</b><br>
-        $${p.precio}
+        <b>${nombre}</b><br>
+        $${precio}<br>
+        <button onclick='agregar(${p.id}, ${nombreSeguro}, ${precio})'>
+          ➕ Agregar
+        </button>
       `;
-      menu.appendChild(d);
+      menuDiv.appendChild(d);
     });
-  })
-  .catch(e => {
-    document.getElementById("menu").innerHTML = "ERROR CARGA";
-    console.error(e);
   });
+
+/* ===== CARRITO ===== */
+function agregar(id, nombre, precio) {
+  carrito.push({ id, nombre, precio });
+  renderCarrito();
+}
+
+function quitar(i) {
+  carrito.splice(i,1);
+  renderCarrito();
+}
+
+function renderCarrito() {
+  if (!carrito.length) {
+    carritoDiv.innerHTML = "Vacío";
+    return;
+  }
+
+  let total = 0;
+  carritoDiv.innerHTML = "";
+
+  carrito.forEach((p,i) => {
+    total += p.precio;
+    carritoDiv.innerHTML += `
+      ${p.nombre} - $${p.precio}
+      <button class="small" onclick="quitar(${i})">✖</button><br>
+    `;
+  });
+
+  carritoDiv.innerHTML += `<div class="total">Total: $${total}</div>`;
+}
 </script>
 
 </body>
