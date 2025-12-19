@@ -60,6 +60,10 @@ function cargar() {
       div.innerHTML = "";
 
       data.forEach(p => {
+        
+        // ❌ No mostrar entregados
+  if (p.estado === "ENTREGADO") return;
+        
         div.innerHTML += `
 <div class="card">
   <b>#${p.pedido_id}</b> - ${p.tipo}<br>
