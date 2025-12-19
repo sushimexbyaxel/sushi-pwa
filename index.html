@@ -1,112 +1,134 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Sushi</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8">
+<title>Sushi Online</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body { font-family: Arial; background:#111; color:#fff; padding:10px }
+.card {
+  background:#222; padding:10px; margin:10px 0;
+  border-radius:8px
+}
+button {
+  padding:6px 10px; margin:5px;
+  border:none; border-radius:5px;
+  cursor:pointer
+}
+input, select {
+  width:100%; padding:6px; margin:5px 0
+}
+</style>
 </head>
+
 <body>
 
-<h1>🍣 Sushi</h1>
-
-<h2>Menú</h2>
+<h2>🍣 Menú Sushi</h2>
 <div id="menu"></div>
 
-<h2>Carrito</h2>
-<div id="carrito">Vacío</div>
-<b>Total: $<span id="total">0</span></b>
+<h3>🛒 Carrito</h3>
+<div id="carrito"></div>
 
-<h2>Tipo de pedido</h2>
+<h3>📋 Datos Cliente</h3>
+<input id="cliente" placeholder="Nombre">
+<input id="telefono" placeholder="Teléfono">
+
 <label>
-  <input type="radio" name="tipo" value="despacho" checked onchange="toggleDir()">
-  🚚 Despacho
+  <input type="radio" name="tipo" value="retiro" checked> Retiro
 </label>
 <label>
-  <input type="radio" name="tipo" value="retiro" onchange="toggleDir()">
-  🏪 Retiro
+  <input type="radio" name="tipo" value="despacho"> Despacho
 </label>
 
-<div id="dirBox">
-  <input id="direccion" placeholder="Dirección despacho">
-</div>
+<input id="direccion" placeholder="Dirección (solo despacho)" style="display:none">
 
-<h2>Datos cliente</h2>
-<input id="cliente" placeholder="Nombre"><br>
-<input id="telefono" placeholder="Teléfono"><br><br>
-
-<button onclick="enviarPedido()">Enviar pedido</button>
+<button onclick="enviarPedido()">Enviar Pedido</button>
 
 <script>
 const API = "https://script.google.com/macros/s/AKfycbxFTMvsq1mR55_9W--Tpck5hurue8SJSo1LNm4tIGbnTIwSgXUKVFKyVwxLEQBWEqDh/exec";
 const TOKEN = "SUSHI2025";
 
+const menuDiv = document.getElementById("menu");
+const carritoDiv = document.getElementById("carrito");
+const cliente = document.getElementById("cliente");
+const telefono = document.getElementById("telefono");
+const direccion = document.getElementById("direccion");
+
 let carrito = [];
 
+/* ===== MENÚ ===== */
 fetch(`${API}?action=menu&token=${TOKEN}`)
   .then(r => r.json())
-  .then(menu => {
-    const div = document.getElementById("menu");
-    menu.forEach(p => {
-      div.innerHTML += `
-        <div style="border:1px solid #ccc; margin:5px; padding:5px;">
-          <b>${p.nombre}</b> $${p.precio}<br>
-          <button onclick='add(${JSON.stringify(p)})'>Agregar</button>
-        </div>
+  .then(data => {
+    menuDiv.innerHTML = "";
+    data.forEach(p => {
+      const d = document.createElement("div");
+      d.className = "card";
+      d.innerHTML = `
+        <b>${p.nombre}</b><br>
+        ${p.descripcion}<br>
+        $${p.precio}<br>
+        <button onclick="agregar(${p.id},'${p.nombre}',${p.precio})">
+          Agregar
+        </button>
       `;
+      menuDiv.appendChild(d);
     });
   });
 
-function add(p) {
-  carrito.push(p);
+/* ===== CARRITO ===== */
+function agregar(id, nombre, precio) {
+  carrito.push({ id, nombre, precio });
   renderCarrito();
 }
 
 function renderCarrito() {
-  const div = document.getElementById("carrito");
-  if (carrito.length === 0) {
-    div.innerText = "Vacío";
-    document.getElementById("total").innerText = 0;
-    return;
-  }
-
-  div.innerHTML = "";
+  carritoDiv.innerHTML = "";
   let total = 0;
 
   carrito.forEach((p,i) => {
     total += p.precio;
-    div.innerHTML += `
-      ${p.nombre} $${p.precio}
-      <button onclick="remove(${i})">x</button><br>
+    carritoDiv.innerHTML += `
+      ${p.nombre} - $${p.precio}
+      <button onclick="quitar(${i})">X</button><br>
     `;
   });
 
-  document.getElementById("total").innerText = total;
+  carritoDiv.innerHTML += `<b>Total: $${total}</b>`;
 }
 
-function remove(i) {
+function quitar(i) {
   carrito.splice(i,1);
   renderCarrito();
 }
 
-function toggleDir() {
-  const tipo = document.querySelector('input[name="tipo"]:checked').value;
-  document.getElementById("dirBox").style.display =
-    tipo === "despacho" ? "block" : "none";
-}
+/* ===== PEDIDO ===== */
+document.querySelectorAll("input[name='tipo']").forEach(r => {
+  r.onchange = () => {
+    direccion.style.display =
+      r.value === "despacho" && r.checked ? "block" : "none";
+  };
+});
 
 function enviarPedido() {
+  if (!cliente.value || !telefono.value) {
+    alert("Completa tus datos");
+    return;
+  }
+
   if (carrito.length === 0) {
     alert("Carrito vacío");
     return;
   }
 
-  const tipo = document.querySelector('input[name="tipo"]:checked').value;
+  const tipo = document.querySelector("input[name='tipo']:checked").value;
   const total = carrito.reduce((s,p)=>s+p.precio,0);
 
   fetch(API, {
     method: "POST",
     body: JSON.stringify({
-      action: "nuevoPedido",
+      action: "nuevopedido",
       token: TOKEN,
       tipo,
       cliente: cliente.value,
@@ -119,26 +141,22 @@ function enviarPedido() {
   .then(r => r.json())
   .then(r => {
     const msg =
-`🍣 *Nuevo Pedido #${r.pedido_id}*
+`🍣 Nuevo Pedido #${r.pedido_id}
 Cliente: ${cliente.value}
 Teléfono: ${telefono.value}
-Tipo: ${tipo.toUpperCase()}
-${tipo === "despacho" ? "Dirección: " + direccion.value : ""}
-Total: $${total}
-
-¡Gracias por su compra!`;
+Tipo: ${tipo}
+Total: $${total}`;
 
     window.open(
-      `https://wa.me/56957069347?text=${encodeURIComponent(msg)}`,
+      `https://wa.me/56${telefono.value}?text=${encodeURIComponent(msg)}`,
       "_blank"
     );
 
-    alert("Pedido enviado correctamente");
+    alert("Pedido enviado");
     carrito = [];
     renderCarrito();
   });
 }
-
 </script>
 
 </body>
