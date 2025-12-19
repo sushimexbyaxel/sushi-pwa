@@ -56,21 +56,27 @@ function cargar() {
       data.forEach(p => {
         div.innerHTML += `
           <div class="card">
-            <b>#${p.pedido_id}</b> - ${p.tipo}<br>
-            <small>${p.fecha}</small><br><br>
-            👤 ${p.cliente}<br>
-            📞 ${p.telefono}<br>
-            📍 ${p.direccion || "Retiro"}<br><br>
-            🍣 <ul>
-${p.items.split(" | ").map(i => `<li>${i}</li>`).join("")}
-</ul>
+  <b>#${p.pedido_id}</b> - ${p.tipo}<br>
+  <small>${p.fecha}</small><br><br>
 
-            💰 $${p.total}<br><br>
-            <span class="estado">${p.estado}</span><br>
-            <button onclick="estado('${p.pedido_id}','PREPARANDO')">Preparando</button>
-            <button onclick="estado('${p.pedido_id}','LISTO')">Listo</button>
-            <button onclick="estado('${p.pedido_id}','ENTREGADO')">Entregado</button>
-          </div>`;
+  👤 ${p.cliente}<br>
+  📞 ${p.telefono}<br>
+  📍 ${p.direccion || "Retiro"}<br><br>
+
+  🍣 Pedido:
+  <ul>
+    ${p.items.split(" | ").map(i => `<li>${i}</li>`).join("")}
+  </ul>
+
+  💰 Total: $${p.total}<br><br>
+
+  <span class="estado">${p.estado}</span><br>
+  <button onclick="estado('${p.pedido_id}','PREPARANDO')">Preparando</button>
+  <button onclick="estado('${p.pedido_id}','LISTO')">Listo</button>
+  <button onclick="estado('${p.pedido_id}','ENTREGADO')">Entregado</button>
+</div>
+
+          ;
       });
     });
 }
