@@ -61,7 +61,10 @@ function cargar() {
             👤 ${p.cliente}<br>
             📞 ${p.telefono}<br>
             📍 ${p.direccion || "Retiro"}<br><br>
-            🍣 ${p.items}<br>
+            🍣 <ul>
+${p.items.split(" | ").map(i => `<li>${i}</li>`).join("")}
+</ul>
+
             💰 $${p.total}<br><br>
             <span class="estado">${p.estado}</span><br>
             <button onclick="estado('${p.pedido_id}','PREPARANDO')">Preparando</button>
@@ -76,6 +79,7 @@ function estado(id, estado) {
   fetch(`${API}?action=estado&token=${TOKEN}&id=${id}&estado=${estado}`)
     .then(() => cargar());
 }
+
 
 cargar();
 setInterval(cargar, 5000);
