@@ -76,6 +76,29 @@ button {
 <button onclick="validar()">Continuar</button>
 
 <script>
+
+  const direccionEl = document.getElementById("direccion");
+
+function toggleDir() {
+  direccionEl.style.display =
+    tipoEl.value === "despacho" ? "block" : "none";
+}
+const direccion = direccionEl.value.trim();
+
+if (tipo === "despacho" && !direccion) {
+  alert("Ingrese dirección");
+  return;
+}
+
+const data = {
+  nombre,
+  telefono,
+  tipo,
+  direccion,
+  items: carrito,
+  total
+};
+
 const API = "https://script.google.com/macros/s/AKfycbxFTMvsq1mR55_9W--Tpck5hurue8SJSo1LNm4tIGbnTIwSgXUKVFKyVwxLEQBWEqDh/exec";
 const TOKEN = "SUSHI2025";
 
