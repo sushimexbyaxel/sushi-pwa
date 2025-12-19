@@ -60,16 +60,18 @@ button {
 <h3>🛒 Carrito</h3>
 <div id="carrito" class="card">Vacío</div>
 
-<h3>📋 Datos del cliente</h3>
+<h3>📋 Datos</h3>
 <div class="card">
   <input id="nombre" placeholder="Nombre">
-  <input id="telefono" placeholder="Teléfono (10 dígitos)">
-  <select id="tipo">
-    <option value="">Seleccione entrega</option>
+  <input id="telefono" placeholder="Teléfono">
+  <select id="tipo" onchange="toggleDir()">
+    <option value="">Entrega</option>
     <option value="despacho">🚚 Despacho</option>
     <option value="retiro">🏪 Retiro</option>
   </select>
+  <input id="direccion" placeholder="Dirección" style="display:none">
 </div>
+
 
 <button onclick="validar()">Continuar</button>
 
