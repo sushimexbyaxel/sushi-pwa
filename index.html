@@ -134,9 +134,21 @@ const direccion = document.getElementById("direccion");
 let carrito = [];
 
 /* ===== MENÚ ===== */
-fetch(`${API}?action=menu&token=${TOKEN}`)
-  .then(r => r.json())
+fetch(`${API}?action=menu&token=${encodeURIComponent(TOKEN)}`)
+  .then(r => {
+    if (!r.ok) throw new Error("Error HTTP");
+    return r.json();
+  })
   .then(data => {
+
+    if (!Array.isArray(data)) {
+      menuDiv.innerHTML = "<p>Error cargando menú</p>";
+      console.error("Respuesta inválida:", data);
+      return;
+    }
+
+    menuDiv.innerHTML = "";
+
     data.forEach(p => {
       const d = document.createElement("div");
       d.className = "card";
@@ -150,7 +162,12 @@ fetch(`${API}?action=menu&token=${TOKEN}`)
       `;
       menuDiv.appendChild(d);
     });
+  })
+  .catch(err => {
+    menuDiv.innerHTML = "<p>No se pudo cargar el menú</p>";
+    console.error("Error menú:", err);
   });
+
 
 /* ===== CARRITO ===== */
 function agregar(id, nombre, precio) {
