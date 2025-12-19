@@ -78,6 +78,13 @@ input {
   font-size:18px;
   margin-top:10px;
 }
+
+#boleta {
+  background:#000;
+  padding:15px;
+  border-radius:10px;
+  margin-top:20px;
+}
 </style>
 </head>
 
@@ -91,7 +98,7 @@ input {
 
 <h3>📋 Datos</h3>
 <input id="cliente" placeholder="Nombre">
-<input id="telefono" placeholder="Teléfono">
+<input id="telefono" placeholder="Teléfono (10 dígitos)">
 
 <div class="tipo">
   <label>
@@ -108,8 +115,14 @@ input {
 
 <button onclick="enviarPedido()">📲 Enviar Pedido</button>
 
+<div id="boleta" style="display:none">
+  <h3>🧾 Pedido recibido</h3>
+  <div id="boletaDetalle"></div>
+  <button onclick="location.reload()">🆕 Nuevo Pedido</button>
+</div>
+
 <script>
-const API = "https://script.google.com/macros/s/AKfycbxFTMvsq1mR55_9W--Tpck5hurue8SJSo1LNm4tIGbnTIwSgXUKVFKyVwxLEQBWEqDh/exec";
+const API   = "https://script.google.com/macros/s/AKfycbxFTMvsq1mR55_9W--Tpck5hurue8SJSo1LNm4tIGbnTIwSgXUKVFKyVwxLEQBWEqDh/exec";
 const TOKEN = "SUSHI2025";
 
 const menuDiv = document.getElementById("menu");
@@ -171,79 +184,4 @@ function renderCarrito() {
 }
 
 /* ===== TIPO ENTREGA ===== */
-document.querySelectorAll("input[name='tipo']").forEach(r => {
-  r.onchange = () => {
-    direccion.style.display =
-      r.value === "despacho" && r.checked ? "block" : "none";
-  };
-});
-
-/* ===== PEDIDO ===== */
-function enviarPedido() {
-  if (!cliente.value || !telefono.value) {
-    alert("Completa tus datos");
-    return;
-  }
-
-  if (!carrito.length) {
-    alert("Agrega productos");
-    return;
-  }
-
-  const tipo = document.querySelector("input[name='tipo']:checked").value;
-  const total = carrito.reduce((s,p)=>s+p.precio,0);
-
-  fetch(API, {
-    method:"POST",
-    body: JSON.stringify({
-      action: "nuevopedido",
-      token: TOKEN,
-      tipo,
-      cliente: cliente.value,
-      telefono: telefono.value,
-      direccion: direccion.value,
-      items: carrito,
-      total
-    })
-  })
-  .then(r => r.json())
-  .then(r => {
-    const msg =
-`🍣 Pedido #${r.pedido_id}
-Cliente: ${cliente.value}
-Tipo: ${tipo}
-Total: $${total}`;
-
-    window.open(
-      `https://wa.me/56${telefono.value}?text=${encodeURIComponent(msg)}`,
-      "_blank"
-    );
-
-    carrito = [];
-    renderCarrito();
-    document.getElementById("boleta").style.display = "block";
-
-let resumen = "";
-carrito.forEach(p => {
-  resumen += `• ${p.nombre} - $${p.precio}<br>`;
-});
-
-document.getElementById("boletaDetalle").innerHTML = `
-  <b>Pedido #${r.pedido_id}</b><br><br>
-  ${resumen}<br>
-  <b>Total:</b> $${total}<br>
-  <b>Tipo:</b> ${tipo}
-`;
-
-  });
-}
-</script>
-  
-<div id="boleta" style="display:none; background:#000; padding:15px; border-radius:10px;">
-  <h3>🧾 Pedido recibido</h3>
-  <div id="boletaDetalle"></div>
-  <button onclick="location.reload()">🆕 Nuevo Pedido</button>
-</div>
-
-</body>
-</html>
+document.querySelectorAll("input[name='tipo']").forEach(
