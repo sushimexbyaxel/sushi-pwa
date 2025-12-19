@@ -14,37 +14,27 @@ body {
   max-width:480px;
   margin:auto;
 }
-
 .card {
   background:#1f1f1f;
   padding:12px;
   margin:10px 0;
   border-radius:10px;
 }
-
-input, select {
+input, select, button {
   width:100%;
   padding:8px;
   margin-top:5px;
   border-radius:6px;
   border:none;
 }
-
 button {
-  padding:8px;
-  border:none;
-  border-radius:6px;
   background:#ff9800;
   font-weight:bold;
-  width:100%;
-  margin-top:10px;
   cursor:pointer;
 }
-
 .small {
   font-size:12px;
 }
-
 .total {
   font-size:18px;
   margin-top:10px;
@@ -53,8 +43,8 @@ button {
 </head>
 
 <body>
-<img src="logo.png" alt="Sushi Online" class="logo">
-<h2> Menú</h2>
+
+<h2>🍣 Menú</h2>
 <div id="menu">Cargando...</div>
 
 <h3>🛒 Carrito</h3>
@@ -65,15 +55,14 @@ button {
   <input id="nombre" placeholder="Nombre">
   <input id="telefono" placeholder="Teléfono">
   <select id="tipo" onchange="toggleDir()">
-   
+    <option value="">Entrega</option>
     <option value="despacho">🚚 Despacho</option>
     <option value="retiro">🏪 Retiro</option>
   </select>
   <input id="direccion" placeholder="Dirección" style="display:none">
 </div>
 
-
-<button onclick="validar()">Continuar</button>
+<button onclick="enviar()">Enviar pedido</button>
 
 <script>
 const API = "https://script.google.com/macros/s/AKfycbxFTMvsq1mR55_9W--Tpck5hurue8SJSo1LNm4tIGbnTIwSgXUKVFKyVwxLEQBWEqDh/exec";
@@ -81,6 +70,10 @@ const TOKEN = "SUSHI2025";
 
 const menuDiv = document.getElementById("menu");
 const carritoDiv = document.getElementById("carrito");
+const nombreEl = document.getElementById("nombre");
+const telefonoEl = document.getElementById("telefono");
+const tipoEl = document.getElementById("tipo");
+const direccionEl = document.getElementById("direccion");
 
 let carrito = [];
 
@@ -90,14 +83,11 @@ fetch(`${API}?action=menu&token=${TOKEN}`)
   .then(data => {
     menuDiv.innerHTML = "";
     data.forEach(p => {
-      const nombreSeguro = JSON.stringify(p.nombre);
       menuDiv.innerHTML += `
         <div class="card">
           <b>${p.nombre}</b><br>
           $${p.precio}<br>
-          <button onclick='agregar(${p.id}, ${nombreSeguro}, ${p.precio})'>
-            ➕ Agregar
-          </button>
+          <button onclick='agregar(${p.id},"${p.nombre}",${p.precio})'>➕ Agregar</button>
         </div>`;
     });
   });
@@ -109,7 +99,7 @@ function agregar(id, nombre, precio) {
 }
 
 function quitar(i) {
-  carrito.splice(i,1);
+  carrito.splice(i, 1);
   renderCarrito();
 }
 
@@ -121,46 +111,60 @@ function renderCarrito() {
 
   let total = 0;
   carritoDiv.innerHTML = "";
-  carrito.forEach((p,i) => {
+
+  carrito.forEach((p, i) => {
     total += p.precio;
     carritoDiv.innerHTML += `
       ${p.nombre} - $${p.precio}
       <button class="small" onclick="quitar(${i})">✖</button><br>`;
   });
+
   carritoDiv.innerHTML += `<div class="total">Total: $${total}</div>`;
 }
 
-/* ===== VALIDACIÓN ===== */
-function validar() {
-  const nombre = document.getElementById("nombre").value.trim();
-  const telefono = document.getElementById("telefono").value.trim();
-  const tipo = document.getElementById("tipo").value;
+/* ===== ENTREGA ===== */
+function toggleDir() {
+  direccionEl.style.display =
+    tipoEl.value === "despacho" ? "block" : "none";
+}
 
-  if (!carrito.length) {
-    alert("Carrito vacío");
-    return;
-  }
+/* ===== ENVÍO ===== */
+function enviar() {
+  const nombre = nombreEl.value.trim();
+  const telefono = telefonoEl.value.trim();
+  const tipo = tipoEl.value;
+  const direccion = direccionEl.value.trim();
 
-  if (!nombre) {
-    alert("Ingrese nombre");
-    return;
-  }
+  if (!carrito.length) return alert("Carrito vacío");
+  if (!nombre) return alert("Ingrese nombre");
 
-  // México: 10 dígitos o +52
   const telMX = /^(\+52)?\d{10}$/;
-  if (!telMX.test(telefono)) {
-    alert("Teléfono inválido (México)");
-    return;
-  }
+  if (!telMX.test(telefono)) return alert("Teléfono inválido");
 
-  if (!tipo) {
-    alert("Seleccione tipo de entrega");
-    return;
-  }
+  if (!tipo) return alert("Seleccione tipo de entrega");
+  if (tipo === "despacho" && !direccion) return alert("Ingrese dirección");
 
-  alert("✔ Datos válidos, listo para enviar a cocina");
+  const total = carrito.reduce((s, p) => s + p.precio, 0);
+
+  const data = {
+    nombre,
+    telefono,
+    tipo,
+    direccion,
+    items: carrito,
+    total
+  };
+
+  fetch(`${API}?action=pedido&token=${TOKEN}&data=${encodeURIComponent(JSON.stringify(data))}`)
+    .then(r => r.json())
+    .then(res => {
+      alert("Pedido enviado ✔\nID: " + res.pedido_id);
+      carrito = [];
+      renderCarrito();
+    });
 }
 </script>
 
 </body>
 </html>
+
