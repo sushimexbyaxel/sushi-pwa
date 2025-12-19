@@ -6,44 +6,107 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
-body { font-family: Arial; background:#111; color:#fff; padding:10px }
+body {
+  font-family: Arial, sans-serif;
+  background:#111;
+  color:#fff;
+  padding:10px;
+  max-width:480px;
+  margin:auto;
+}
+
+h2, h3 { margin-top:20px }
+
 .card {
-  background:#222; padding:10px; margin:10px 0;
-  border-radius:8px
+  background:#1f1f1f;
+  padding:12px;
+  margin:10px 0;
+  border-radius:10px;
 }
+
 button {
-  padding:6px 10px; margin:5px;
-  border:none; border-radius:5px;
-  cursor:pointer
+  padding:8px 12px;
+  margin-top:6px;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+  background:#ff9800;
+  color:#000;
+  font-weight:bold;
 }
-input, select {
-  width:100%; padding:6px; margin:5px 0
+
+button.small {
+  padding:4px 8px;
+  font-size:12px;
+}
+
+input {
+  width:100%;
+  padding:8px;
+  margin:6px 0;
+  border-radius:6px;
+  border:none;
+}
+
+.tipo {
+  display:flex;
+  gap:10px;
+}
+
+.tipo label {
+  flex:1;
+  background:#222;
+  padding:10px;
+  border-radius:8px;
+  text-align:center;
+  cursor:pointer;
+}
+
+.tipo input {
+  display:none;
+}
+
+.tipo input:checked + span {
+  background:#ff9800;
+  color:#000;
+  border-radius:6px;
+  padding:6px;
+  display:block;
+}
+
+.total {
+  font-size:18px;
+  margin-top:10px;
 }
 </style>
 </head>
 
 <body>
 
-<h2>🍣 Menú Sushi</h2>
+<h2>🍣 Menú</h2>
 <div id="menu"></div>
 
-<h3>🛒 Carrito</h3>
-<div id="carrito"></div>
+<h3>🛒 Tu pedido</h3>
+<div id="carrito" class="card"></div>
 
-<h3>📋 Datos Cliente</h3>
+<h3>📋 Datos</h3>
 <input id="cliente" placeholder="Nombre">
 <input id="telefono" placeholder="Teléfono">
 
-<label>
-  <input type="radio" name="tipo" value="retiro" checked> Retiro
-</label>
-<label>
-  <input type="radio" name="tipo" value="despacho"> Despacho
-</label>
+<div class="tipo">
+  <label>
+    <input type="radio" name="tipo" value="retiro" checked>
+    <span>🏪 Retiro</span>
+  </label>
+  <label>
+    <input type="radio" name="tipo" value="despacho">
+    <span>🚚 Despacho</span>
+  </label>
+</div>
 
-<input id="direccion" placeholder="Dirección (solo despacho)" style="display:none">
+<input id="direccion" placeholder="Dirección de despacho" style="display:none">
 
-<button onclick="enviarPedido()">Enviar Pedido</button>
+<button onclick="enviarPedido()">📲 Enviar Pedido</button>
 
 <script>
 const API = "https://script.google.com/macros/s/AKfycbxFTMvsq1mR55_9W--Tpck5hurue8SJSo1LNm4tIGbnTIwSgXUKVFKyVwxLEQBWEqDh/exec";
@@ -61,16 +124,15 @@ let carrito = [];
 fetch(`${API}?action=menu&token=${TOKEN}`)
   .then(r => r.json())
   .then(data => {
-    menuDiv.innerHTML = "";
     data.forEach(p => {
       const d = document.createElement("div");
       d.className = "card";
       d.innerHTML = `
         <b>${p.nombre}</b><br>
-        ${p.descripcion}<br>
-        $${p.precio}<br>
+        <small>${p.descripcion}</small><br>
+        <b>$${p.precio}</b><br>
         <button onclick="agregar(${p.id},'${p.nombre}',${p.precio})">
-          Agregar
+          ➕ Agregar
         </button>
       `;
       menuDiv.appendChild(d);
@@ -83,27 +145,32 @@ function agregar(id, nombre, precio) {
   renderCarrito();
 }
 
-function renderCarrito() {
-  carritoDiv.innerHTML = "";
-  let total = 0;
-
-  carrito.forEach((p,i) => {
-    total += p.precio;
-    carritoDiv.innerHTML += `
-      ${p.nombre} - $${p.precio}
-      <button onclick="quitar(${i})">X</button><br>
-    `;
-  });
-
-  carritoDiv.innerHTML += `<b>Total: $${total}</b>`;
-}
-
 function quitar(i) {
   carrito.splice(i,1);
   renderCarrito();
 }
 
-/* ===== PEDIDO ===== */
+function renderCarrito() {
+  if (!carrito.length) {
+    carritoDiv.innerHTML = "<i>Carrito vacío</i>";
+    return;
+  }
+
+  let total = 0;
+  carritoDiv.innerHTML = "";
+
+  carrito.forEach((p,i) => {
+    total += p.precio;
+    carritoDiv.innerHTML += `
+      ${p.nombre} - $${p.precio}
+      <button class="small" onclick="quitar(${i})">✖</button><br>
+    `;
+  });
+
+  carritoDiv.innerHTML += `<div class="total">Total: $${total}</div>`;
+}
+
+/* ===== TIPO ENTREGA ===== */
 document.querySelectorAll("input[name='tipo']").forEach(r => {
   r.onchange = () => {
     direccion.style.display =
@@ -111,14 +178,15 @@ document.querySelectorAll("input[name='tipo']").forEach(r => {
   };
 });
 
+/* ===== PEDIDO ===== */
 function enviarPedido() {
   if (!cliente.value || !telefono.value) {
     alert("Completa tus datos");
     return;
   }
 
-  if (carrito.length === 0) {
-    alert("Carrito vacío");
+  if (!carrito.length) {
+    alert("Agrega productos");
     return;
   }
 
@@ -126,7 +194,7 @@ function enviarPedido() {
   const total = carrito.reduce((s,p)=>s+p.precio,0);
 
   fetch(API, {
-    method: "POST",
+    method:"POST",
     body: JSON.stringify({
       action: "nuevopedido",
       token: TOKEN,
@@ -141,9 +209,8 @@ function enviarPedido() {
   .then(r => r.json())
   .then(r => {
     const msg =
-`🍣 Nuevo Pedido #${r.pedido_id}
+`🍣 Pedido #${r.pedido_id}
 Cliente: ${cliente.value}
-Teléfono: ${telefono.value}
 Tipo: ${tipo}
 Total: $${total}`;
 
@@ -152,9 +219,9 @@ Total: $${total}`;
       "_blank"
     );
 
-    alert("Pedido enviado");
     carrito = [];
     renderCarrito();
+    alert("Pedido enviado 👍");
   });
 }
 </script>
