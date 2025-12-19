@@ -135,40 +135,43 @@ let carrito = [];
 
 /* ===== MENÚ ===== */
 fetch(`${API}?action=menu&token=${encodeURIComponent(TOKEN)}`)
-  .then(r => {
-    if (!r.ok) throw new Error("Error HTTP");
-    return r.json();
-  })
+  .then(r => r.json())
   .then(data => {
 
-    if (!Array.isArray(data)) {
-      menuDiv.innerHTML = "<p>Error cargando menú</p>";
-      console.error("Respuesta inválida:", data);
-      return;
-    }
+    console.log("MENU DATA:", data); // DEBUG
 
     menuDiv.innerHTML = "";
 
+    if (!Array.isArray(data) || data.length === 0) {
+      menuDiv.innerHTML = "<p>No hay productos disponibles</p>";
+      return;
+    }
+
     data.forEach(p => {
+
+      const nombre = p.nombre || "Producto";
+      const descripcion = p.descripcion || "";
+      const precio = Number(p.precio) || 0;
+      const nombreSeguro = JSON.stringify(nombre);
+
       const d = document.createElement("div");
       d.className = "card";
-     const nombreSeguro = JSON.stringify(p.nombre);
 
-d.innerHTML = `
-  <b>${p.nombre}</b><br>
-  <small>${p.descripcion}</small><br>
-  <b>$${p.precio}</b><br>
-  <button onclick='agregar(${p.id}, ${nombreSeguro}, ${p.precio})'>
-    ➕ Agregar
-  </button>
-`;
+      d.innerHTML = `
+        <b>${nombre}</b><br>
+        <small>${descripcion}</small><br>
+        <b>$${precio}</b><br>
+        <button onclick='agregar(${p.id}, ${nombreSeguro}, ${precio})'>
+          ➕ Agregar
+        </button>
+      `;
 
       menuDiv.appendChild(d);
     });
   })
   .catch(err => {
-    menuDiv.innerHTML = "<p>No se pudo cargar el menú</p>";
-    console.error("Error menú:", err);
+    console.error("ERROR MENU:", err);
+    menuDiv.innerHTML = "<p>Error cargando menú</p>";
   });
 
 
