@@ -221,7 +221,20 @@ Total: $${total}`;
 
     carrito = [];
     renderCarrito();
-    alert("Pedido enviado 👍");
+    document.getElementById("boleta").style.display = "block";
+
+let resumen = "";
+carrito.forEach(p => {
+  resumen += `• ${p.nombre} - $${p.precio}<br>`;
+});
+
+document.getElementById("boletaDetalle").innerHTML = `
+  <b>Pedido #${r.pedido_id}</b><br><br>
+  ${resumen}<br>
+  <b>Total:</b> $${total}<br>
+  <b>Tipo:</b> ${tipo}
+`;
+
   });
 }
 </script>
