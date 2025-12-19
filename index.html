@@ -13,12 +13,6 @@ body {
   padding:10px;
   max-width:480px;
   margin:auto;
-  text-align:center;
-}
-
-img.logo {
-  max-width:200px;
-  margin-bottom:15px;
 }
 
 .card {
@@ -26,41 +20,39 @@ img.logo {
   padding:12px;
   margin:10px 0;
   border-radius:10px;
-  text-align:left;
 }
 
-input, select, button {
+input, select {
   width:100%;
-  padding:6px;
+  padding:8px;
   margin-top:5px;
   border-radius:6px;
   border:none;
-  font-size:14px;
 }
 
 button {
+  padding:8px;
+  border:none;
+  border-radius:6px;
   background:#ff9800;
   font-weight:bold;
+  width:100%;
+  margin-top:10px;
   cursor:pointer;
-  padding:6px; /* más pequeño para móvil */
 }
 
-button.small {
+.small {
   font-size:12px;
-  padding:4px;
 }
 
 .total {
-  font-size:16px;
-  margin-top:8px;
+  font-size:18px;
+  margin-top:10px;
 }
 </style>
 </head>
 
 <body>
-
-<!-- LOGO -->
-<img src="logo.png" alt="Sushi Online" class="logo">
 
 <h2>🍣 Menú</h2>
 <div id="menu">Cargando...</div>
@@ -73,13 +65,15 @@ button.small {
   <input id="nombre" placeholder="Nombre">
   <input id="telefono" placeholder="Teléfono">
   <select id="tipo" onchange="toggleDir()">
+    <option value="">Entrega</option>
     <option value="despacho">🚚 Despacho</option>
     <option value="retiro">🏪 Retiro</option>
   </select>
   <input id="direccion" placeholder="Dirección" style="display:none">
 </div>
 
-<button onclick="enviar()">Enviar pedido</button>
+
+<button onclick="validar()">Continuar</button>
 
 <script>
 const API = "https://script.google.com/macros/s/AKfycbxFTMvsq1mR55_9W--Tpck5hurue8SJSo1LNm4tIGbnTIwSgXUKVFKyVwxLEQBWEqDh/exec";
@@ -87,10 +81,6 @@ const TOKEN = "SUSHI2025";
 
 const menuDiv = document.getElementById("menu");
 const carritoDiv = document.getElementById("carrito");
-const nombreEl = document.getElementById("nombre");
-const telefonoEl = document.getElementById("telefono");
-const tipoEl = document.getElementById("tipo");
-const direccionEl = document.getElementById("direccion");
 
 let carrito = [];
 
@@ -100,11 +90,14 @@ fetch(`${API}?action=menu&token=${TOKEN}`)
   .then(data => {
     menuDiv.innerHTML = "";
     data.forEach(p => {
+      const nombreSeguro = JSON.stringify(p.nombre);
       menuDiv.innerHTML += `
         <div class="card">
           <b>${p.nombre}</b><br>
           $${p.precio}<br>
-          <button onclick='agregar(${p.id},"${p.nombre}",${p.precio})'>➕ Agregar</button>
+          <button onclick='agregar(${p.id}, ${nombreSeguro}, ${p.precio})'>
+            ➕ Agregar
+          </button>
         </div>`;
     });
   });
@@ -116,7 +109,7 @@ function agregar(id, nombre, precio) {
 }
 
 function quitar(i) {
-  carrito.splice(i, 1);
+  carrito.splice(i,1);
   renderCarrito();
 }
 
@@ -128,29 +121,46 @@ function renderCarrito() {
 
   let total = 0;
   carritoDiv.innerHTML = "";
-
-  carrito.forEach((p, i) => {
+  carrito.forEach((p,i) => {
     total += p.precio;
     carritoDiv.innerHTML += `
       ${p.nombre} - $${p.precio}
       <button class="small" onclick="quitar(${i})">✖</button><br>`;
   });
-
   carritoDiv.innerHTML += `<div class="total">Total: $${total}</div>`;
 }
 
-/* ===== ENTREGA ===== */
-function toggleDir() {
-  direccionEl.style.display =
-    tipoEl.value === "despacho" ? "block" : "none";
+/* ===== VALIDACIÓN ===== */
+function validar() {
+  const nombre = document.getElementById("nombre").value.trim();
+  const telefono = document.getElementById("telefono").value.trim();
+  const tipo = document.getElementById("tipo").value;
+
+  if (!carrito.length) {
+    alert("Carrito vacío");
+    return;
+  }
+
+  if (!nombre) {
+    alert("Ingrese nombre");
+    return;
+  }
+
+  // México: 10 dígitos o +52
+  const telMX = /^(\+52)?\d{10}$/;
+  if (!telMX.test(telefono)) {
+    alert("Teléfono inválido (México)");
+    return;
+  }
+
+  if (!tipo) {
+    alert("Seleccione tipo de entrega");
+    return;
+  }
+
+  alert("✔ Datos válidos, listo para enviar a cocina");
 }
+</script>
 
-/* ===== ENVÍO ===== */
-function enviar() {
-  const nombre = nombreEl.value.trim();
-  const telefono = telefonoEl.value.trim();
-  const tipo = tipoEl.value;
-  const direccion = direccionEl.value.trim();
-
-  if (!carrito.length) return alert("Carrito vacío");
-  if (!nombre) return alert("Ingrese nombre"
+</body>
+</html>
