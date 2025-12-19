@@ -4,37 +4,65 @@
 <meta charset="UTF-8">
 <title>Cocina Sushi</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+
 <style>
-body { font-family: Arial; background:#111; color:#fff; padding:10px }
+body {
+  font-family: Arial;
+  background:#111;
+  color:#fff;
+  padding:10px;
+  max-width:480px;
+  margin:auto;
+}
+
 .card {
-  background:#222; margin:10px 0; padding:10px;
-  border-radius:8px
+  background:#1f1f1f;
+  margin:12px 0;
+  padding:12px;
+  border-radius:10px;
 }
+
+.items {
+  background:#000;
+  padding:8px;
+  margin:8px 0;
+  border-radius:6px;
+  font-size:14px;
+}
+
 button {
-  margin:5px; padding:6px 10px;
-  border:none; border-radius:5px;
-  cursor:pointer
+  margin:4px 4px 0 0;
+  padding:6px 10px;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+  font-weight:bold;
 }
-.nuevo { background:#444 }
-.preparando { background:orange }
-.listo { background:limegreen }
-.entregado { background:#777 }
+
+.nuevo { border-left:5px solid #777 }
+.preparando { border-left:5px solid orange }
+.listo { border-left:5px solid limegreen }
 </style>
 </head>
+
 <body>
 
-<h2>🍣 Pedidos Cocina</h2>
+<h2>🍳 Cocina</h2>
 <div id="lista"></div>
 
 <script>
 const API   = "https://script.google.com/macros/s/AKfycbxFTMvsq1mR55_9W--Tpck5hurue8SJSo1LNm4tIGbnTIwSgXUKVFKyVwxLEQBWEqDh/exec";
 const TOKEN = "SUSHI2025";
 
+const lista = document.getElementById("lista");
+
+/* ===== CARGAR PEDIDOS ===== */
 function cargarPedidos() {
   fetch(`${API}?action=pedidos&token=${TOKEN}`)
     .then(r => r.json())
     .then(data => {
       lista.innerHTML = "";
+
       if (!data.length) {
         lista.innerHTML = "<p>No hay pedidos</p>";
         return;
@@ -42,16 +70,33 @@ function cargarPedidos() {
 
       data.forEach(p => {
         const div = document.createElement("div");
-        div.className = "card " + p.estado;
+        div.className = `card ${p.estado}`;
+
+        // Agrupar productos iguales
+        const resumen = {};
+        p.items.forEach(i => {
+          resumen[i.nombre] = (resumen[i.nombre] || 0) + 1;
+        });
+
+        let itemsHTML = "";
+        for (let nombre in resumen) {
+          itemsHTML += `• ${resumen[nombre]} x ${nombre}<br>`;
+        }
 
         div.innerHTML = `
-          <b>#${p.pedido_id}</b><br>
-          ${p.cliente} (${p.tipo})<br>
-          $${p.total}<br>
+          <b>#${p.pedido_id}</b> — ${p.tipo.toUpperCase()}<br>
+          Cliente: ${p.cliente}<br>
+
+          <div class="items">
+            ${itemsHTML}
+          </div>
+
+          <b>Total: $${p.total}</b><br>
           Estado: <b>${p.estado}</b><br>
-          <button onclick="estado(${p.pedido_id},'preparando')">Preparando</button>
-          <button onclick="estado(${p.pedido_id},'listo')">Listo</button>
-          <button onclick="estado(${p.pedido_id},'entregado')">Entregado</button>
+
+          <button onclick="estado(${p.pedido_id},'preparando')">👨‍🍳 Preparando</button>
+          <button onclick="estado(${p.pedido_id},'listo')">✅ Listo</button>
+          <button onclick="estado(${p.pedido_id},'entregado')">📦 Entregado</button>
         `;
 
         lista.appendChild(div);
@@ -59,6 +104,7 @@ function cargarPedidos() {
     });
 }
 
+/* ===== CAMBIAR ESTADO ===== */
 function estado(id, estado) {
   fetch(API, {
     method: "POST",
@@ -66,7 +112,7 @@ function estado(id, estado) {
       action: "estadopedido",
       token: TOKEN,
       pedido_id: id,
-      estado: estado
+      estado
     })
   })
   .then(r => r.json())
