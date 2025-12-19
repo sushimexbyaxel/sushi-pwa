@@ -152,14 +152,17 @@ fetch(`${API}?action=menu&token=${encodeURIComponent(TOKEN)}`)
     data.forEach(p => {
       const d = document.createElement("div");
       d.className = "card";
-      d.innerHTML = `
-        <b>${p.nombre}</b><br>
-        <small>${p.descripcion}</small><br>
-        <b>$${p.precio}</b><br>
-        <button onclick="agregar(${p.id},'${p.nombre}',${p.precio})">
-          ➕ Agregar
-        </button>
-      `;
+     const nombreSeguro = JSON.stringify(p.nombre);
+
+d.innerHTML = `
+  <b>${p.nombre}</b><br>
+  <small>${p.descripcion}</small><br>
+  <b>$${p.precio}</b><br>
+  <button onclick='agregar(${p.id}, ${nombreSeguro}, ${p.precio})'>
+    ➕ Agregar
+  </button>
+`;
+
       menuDiv.appendChild(d);
     });
   })
