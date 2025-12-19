@@ -2,88 +2,28 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Sushi Online</title>
+<title>Sushi Test Menú</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
 body {
-  font-family: Arial, sans-serif;
+  font-family: Arial;
   background:#111;
   color:#fff;
   padding:10px;
-  max-width:480px;
-  margin:auto;
 }
-
-h2, h3 { margin-top:20px }
-
 .card {
   background:#1f1f1f;
   padding:12px;
   margin:10px 0;
   border-radius:10px;
 }
-
 button {
-  padding:8px 12px;
-  margin-top:6px;
+  padding:6px 10px;
   border:none;
   border-radius:6px;
-  cursor:pointer;
   background:#ff9800;
-  color:#000;
   font-weight:bold;
-}
-
-button.small {
-  padding:4px 8px;
-  font-size:12px;
-}
-
-input {
-  width:100%;
-  padding:8px;
-  margin:6px 0;
-  border-radius:6px;
-  border:none;
-}
-
-.tipo {
-  display:flex;
-  gap:10px;
-}
-
-.tipo label {
-  flex:1;
-  background:#222;
-  padding:10px;
-  border-radius:8px;
-  text-align:center;
-  cursor:pointer;
-}
-
-.tipo input {
-  display:none;
-}
-
-.tipo input:checked + span {
-  background:#ff9800;
-  color:#000;
-  border-radius:6px;
-  padding:6px;
-  display:block;
-}
-
-.total {
-  font-size:18px;
-  margin-top:10px;
-}
-
-#boleta {
-  background:#000;
-  padding:15px;
-  border-radius:10px;
-  margin-top:20px;
 }
 </style>
 </head>
@@ -91,123 +31,37 @@ input {
 <body>
 
 <h2>🍣 Menú</h2>
-<div id="menu"></div>
-
-<h3>🛒 Tu pedido</h3>
-<div id="carrito" class="card"></div>
-
-<h3>📋 Datos</h3>
-<input id="cliente" placeholder="Nombre">
-<input id="telefono" placeholder="Teléfono (10 dígitos)">
-
-<div class="tipo">
-  <label>
-    <input type="radio" name="tipo" value="retiro" checked>
-    <span>🏪 Retiro</span>
-  </label>
-  <label>
-    <input type="radio" name="tipo" value="despacho">
-    <span>🚚 Despacho</span>
-  </label>
-</div>
-
-<input id="direccion" placeholder="Dirección de despacho" style="display:none">
-
-<button onclick="enviarPedido()">📲 Enviar Pedido</button>
-
-<div id="boleta" style="display:none">
-  <h3>🧾 Pedido recibido</h3>
-  <div id="boletaDetalle"></div>
-  <button onclick="location.reload()">🆕 Nuevo Pedido</button>
-</div>
+<div id="menu">Cargando...</div>
 
 <script>
-  
-alert("JS CARGADO");
+alert("JS OK");
 
-const API   = "https://script.google.com/macros/s/AKfycbxFTMvsq1mR55_9W--Tpck5hurue8SJSo1LNm4tIGbnTIwSgXUKVFKyVwxLEQBWEqDh/exec";
-const TOKEN = "SUSHI2025";
+const API = "https://script.google.com/macros/s/AKfycbxFTMvsq1mR55_9W--Tpck5hurue8SJSo1LNm4tIGbnTIwSgXUKVFKyVwxLEQBWEqDh/exec";
 
-const menuDiv = document.getElementById("menu");
-const carritoDiv = document.getElementById("carrito");
-const cliente = document.getElementById("cliente");
-const telefono = document.getElementById("telefono");
-const direccion = document.getElementById("direccion");
-
-let carrito = [];
-
-/* ===== MENÚ ===== */
-fetch(`${API}?action=menu&token=${encodeURIComponent(TOKEN)}`)
+fetch(API + "?action=menu&token=SUSHI2025")
   .then(r => r.json())
   .then(data => {
 
-    console.log("MENU DATA:", data); // DEBUG
+    console.log("DATA:", data);
 
-    menuDiv.innerHTML = "";
-
-    if (!Array.isArray(data) || data.length === 0) {
-      menuDiv.innerHTML = "<p>No hay productos disponibles</p>";
-      return;
-    }
+    const menu = document.getElementById("menu");
+    menu.innerHTML = "";
 
     data.forEach(p => {
-
-      const nombre = p.nombre || "Producto";
-      const descripcion = p.descripcion || "";
-      const precio = Number(p.precio) || 0;
-      const nombreSeguro = JSON.stringify(nombre);
-
       const d = document.createElement("div");
       d.className = "card";
-
       d.innerHTML = `
-        <b>${nombre}</b><br>
-        <small>${descripcion}</small><br>
-        <b>$${precio}</b><br>
-        <button onclick='agregar(${p.id}, ${nombreSeguro}, ${precio})'>
-          ➕ Agregar
-        </button>
+        <b>${p.nombre}</b><br>
+        $${p.precio}
       `;
-
-      menuDiv.appendChild(d);
+      menu.appendChild(d);
     });
   })
-  .catch(err => {
-    console.error("ERROR MENU:", err);
-    menuDiv.innerHTML = "<p>Error cargando menú</p>";
+  .catch(e => {
+    document.getElementById("menu").innerHTML = "ERROR CARGA";
+    console.error(e);
   });
+</script>
 
-
-/* ===== CARRITO ===== */
-function agregar(id, nombre, precio) {
-  carrito.push({ id, nombre, precio });
-  renderCarrito();
-}
-
-function quitar(i) {
-  carrito.splice(i,1);
-  renderCarrito();
-}
-
-function renderCarrito() {
-  if (!carrito.length) {
-    carritoDiv.innerHTML = "<i>Carrito vacío</i>";
-    return;
-  }
-
-  let total = 0;
-  carritoDiv.innerHTML = "";
-
-  carrito.forEach((p,i) => {
-    total += p.precio;
-    carritoDiv.innerHTML += `
-      ${p.nombre} - $${p.precio}
-      <button class="small" onclick="quitar(${i})">✖</button><br>
-    `;
-  });
-
-  carritoDiv.innerHTML += `<div class="total">Total: $${total}</div>`;
-}
-
-/* ===== TIPO ENTREGA ===== */
-document.querySelectorAll("input[name='tipo']").forEach(
+</body>
+</html>
