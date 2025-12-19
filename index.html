@@ -13,36 +13,54 @@ body {
   padding:10px;
   max-width:480px;
   margin:auto;
+  text-align:center;
 }
+
+img.logo {
+  max-width:200px;
+  margin-bottom:15px;
+}
+
 .card {
   background:#1f1f1f;
   padding:12px;
   margin:10px 0;
   border-radius:10px;
+  text-align:left;
 }
+
 input, select, button {
   width:100%;
-  padding:8px;
+  padding:6px;
   margin-top:5px;
   border-radius:6px;
   border:none;
+  font-size:14px;
 }
+
 button {
   background:#ff9800;
   font-weight:bold;
   cursor:pointer;
+  padding:6px; /* más pequeño para móvil */
 }
-.small {
+
+button.small {
   font-size:12px;
+  padding:4px;
 }
+
 .total {
-  font-size:18px;
-  margin-top:10px;
+  font-size:16px;
+  margin-top:8px;
 }
 </style>
 </head>
 
 <body>
+
+<!-- LOGO -->
+<img src="logo.png" alt="Sushi Online" class="logo">
 
 <h2>🍣 Menú</h2>
 <div id="menu">Cargando...</div>
@@ -55,7 +73,6 @@ button {
   <input id="nombre" placeholder="Nombre">
   <input id="telefono" placeholder="Teléfono">
   <select id="tipo" onchange="toggleDir()">
-    <option value="">Entrega</option>
     <option value="despacho">🚚 Despacho</option>
     <option value="retiro">🏪 Retiro</option>
   </select>
@@ -136,34 +153,4 @@ function enviar() {
   const direccion = direccionEl.value.trim();
 
   if (!carrito.length) return alert("Carrito vacío");
-  if (!nombre) return alert("Ingrese nombre");
-
-  const telMX = /^(\+52)?\d{10}$/;
-  if (!telMX.test(telefono)) return alert("Teléfono inválido");
-
-  if (!tipo) return alert("Seleccione tipo de entrega");
-  if (tipo === "despacho" && !direccion) return alert("Ingrese dirección");
-
-  const total = carrito.reduce((s, p) => s + p.precio, 0);
-
-  const data = {
-    nombre,
-    telefono,
-    tipo,
-    direccion,
-    items: carrito,
-    total
-  };
-
-  fetch(`${API}?action=pedido&token=${TOKEN}&data=${encodeURIComponent(JSON.stringify(data))}`)
-    .then(r => r.json())
-    .then(res => {
-      alert("Pedido enviado ✔\nID: " + res.pedido_id);
-      carrito = [];
-      renderCarrito();
-    });
-}
-</script>
-
-</body>
-</html>
+  if (!nombre) return alert("Ingrese nombre"
